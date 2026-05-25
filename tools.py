@@ -1,17 +1,21 @@
+"""
+工具函数：获取坐标、截取模板图片
+"""
 import pyautogui
 import time
-import os
+import cv2
+import numpy as np
 
 
 def get_coordinates():
-    """获取鼠标坐标工具"""
+    """获取鼠标坐标"""
     print("\n鼠标坐标获取工具")
-    print("请依次把鼠标移到以下位置，按 Ctrl+C 记录：")
-    print("  1. 1-1关卡按钮")
-    print("  2. 开始按钮")
-    print("  3. 退出按钮")
-    print("  4. 三个食物制作按钮")
-    print("  5. 三个顾客头顶区域（左上角和右下角）")
+    print("把鼠标移到目标位置，按 Ctrl+C 退出")
+    print("需要获取的坐标：")
+    print("  - 1-1关卡按钮")
+    print("  - 开始按钮")
+    print("  - 退出按钮")
+    print("  - 三个食物制作按钮（按顺序）")
 
     try:
         while True:
@@ -20,21 +24,45 @@ def get_coordinates():
             time.sleep(0.1)
     except KeyboardInterrupt:
         print("\n\n坐标获取完成")
-        print("请手动记录你看到的坐标值")
+        print("请将坐标填入")
 
 
-def capture_templates():
-    """截取模板图片提示"""
+def capture_template(region, save_path):
+    """
+    截取指定区域并保存为模板图片
+    region: (x, y, width, height)
+    save_path: 保存路径
+    """
+    screenshot = pyautogui.screenshot(region=region)
+    screenshot = np.array(screenshot)
+    screenshot = cv2.cvtColor(screenshot, cv2.COLOR_RGB2BGR)
+    cv2.imwrite(save_path, screenshot)
+    print(f"已保存: {save_path}")
+
+
+def capture_templates_guide():
+    """截取食物模板图片的引导"""
     print("\n模板图片截取工具")
+    print("=" * 40)
     print("请在游戏中显示顾客头顶的食物图标")
-    print("按提示截取图片...")
+    print("\n步骤：")
+    print("1. 先运行 get_coordinates() 获取食物图标区域的坐标")
+    print("2. 记录食物图标的左上角和右下角坐标")
+    print("3. 用下面的代码截取：")
+    print()
+    print("   from tools import capture_template")
+    print("   # 截取食物A")
+    print("   capture_template((x1, y1, w, h), 'templates/food_a.png')")
+    print()
+    print("=" * 40)
 
-    print("\n请手动操作：")
-    print("1. 在项目目录下创建 templates 文件夹（若不存在）")
-    print("2. 用截图工具截取顾客头顶的每个食物图标")
-    print("3. 保存为 food_a.png, food_b.png, food_c.png")
-    print("4. 放在 templates 文件夹中")
 
-    # 确保 templates 文件夹存在
-    os.makedirs('templates', exist_ok=True)
-    print("\n已确保 templates/ 目录存在，请将模板图片放入其中。")
+def test_screenshot():
+    """测试截图功能"""
+    print("测试截图...")
+    screenshot = pyautogui.screenshot()
+    print(f"截图成功，大小: {screenshot.size}")
+
+    # 保存测试截图
+    screenshot.save("test_screenshot.png")
+    print("已保存 test_screenshot.png")
