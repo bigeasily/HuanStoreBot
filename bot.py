@@ -6,8 +6,24 @@ import mss
 from screeninfo import get_monitors
 import pydirectinput
 from food_maker import FoodMaker
+import keyboard
 
 pydirectinput.FAILSAFE = False
+
+# ============================================================
+# 全局运行标志 + F9 安全退出
+# ============================================================
+RUNNING = True
+
+
+def _stop_script():
+    """F9 热键回调"""
+    global RUNNING
+    RUNNING = False
+    print("\n🛑 F9 按下，正在安全退出...")
+
+
+keyboard.add_hotkey('f9', _stop_script)
 
 
 class StoreManagerBot:
@@ -124,10 +140,6 @@ class StoreManagerBot:
         print(f"✅ 本轮制作完成，共制作 {made_count} 个食物")
 
     def press_f(self):
-        # if 'exit' in self.coords:
-        #     ex = self.coords['exit']
-        #     pydirectinput.click(ex[0] + 60, ex[1] + 60)
-        #     time.sleep(0.3)
         pydirectinput.press('f')
         print("✅ 按下 F 键进入")
 
@@ -136,10 +148,11 @@ class StoreManagerBot:
         print(f"✅ 点击: ({x}, {y})")
         time.sleep(0.2)
 
-    def enter_level(self):
+    def enter_level(self, first_time=False):
         print("\n--- 进入关卡 ---")
-        self.press_f()
-        time.sleep(1.3)
+        if first_time:
+            self.press_f()
+            time.sleep(1.3)
         self.click(*self.coords['level_1_1'])
         time.sleep(1)
         self.click(*self.coords['start'])
@@ -151,17 +164,23 @@ class StoreManagerBot:
         self.click(*self.coords['exit'])
         time.sleep(1.5)
 
-    def run_one_cycle(self):
-        self.enter_level()
+    def run_one_cycle(self, first_time=False):
+        self.enter_level(first_time=first_time)
         self.run_detection_and_making(max_time=50)
         self.exit_level()
         self.click(*self.coords['lingqu'])
         print("✅ 一轮完成\n")
 
     def run_loop(self, cycles=10):
-        print(f"开始运行 {cycles} 轮...\n")
+        global RUNNING
+        print(f"开始运行 {cycles} 轮...")
+        print("⌨️  按 F9 安全退出脚本\n")
         time.sleep(2)
         for i in range(cycles):
+            if not RUNNING:
+                print("\n🛑 用户中断，退出循环")
+                break
             print(f"========== 第 {i + 1} 轮 ==========")
-            self.run_one_cycle()
+            self.run_one_cycle(first_time=(i == 0))
             time.sleep(2)
+        print("✅ 脚本已安全退出")
